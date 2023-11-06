@@ -1,24 +1,31 @@
-use actix_web::{self, HttpServer, App, Responder, web::{Data, Query}, get, HttpRequest, HttpResponse};
 use actix_files::NamedFile;
+use actix_web::{
+    self, get,
+    http::header::{self, HeaderName, HeaderValue},
+    web::{Data, Query},
+    App, HttpRequest, HttpResponse, HttpServer, Responder,
+};
+use clap::{self, arg, command, value_parser};
 use env_logger;
-use log::{info, error};
+use log::{debug, info};
+use mime_guess;
 use serde::Deserialize;
-use clap::{self, command, arg, value_parser};
 
-use std::{env, path::PathBuf};
+use std::io::prelude::*;
 use std::path;
+use std::{borrow::BorrowMut, env, path::PathBuf};
 
 #[derive(Debug, Clone)]
 struct ServerConfigs {
     base_dir: PathBuf,
     host: String,
-    port: u16, 
+    port: u16,
     log_level: log::Level,
 }
 
 impl ServerConfigs {
     fn builder() -> ServerConfigsBuilder {
-        ServerConfigsBuilder { 
+        ServerConfigsBuilder {
             base_dir: None,
             host: None,
             port: None,
@@ -30,28 +37,28 @@ impl ServerConfigs {
         let matches = command!()
             .arg(
                 arg!([base_dir] "Optional base directory to serve")
-                .required(false)
-                .value_parser(value_parser!(PathBuf))
+                    .required(false)
+                    .value_parser(value_parser!(PathBuf)),
             )
             .arg(
                 arg!(-p --port <PORT> "Sets custom port")
                     .required(false)
-                    .value_parser(value_parser!(u16))
+                    .value_parser(value_parser!(u16)),
             )
             .arg(
                 arg!(-H --host <HOST> "Sets custom host")
-                .required(false)
-                    .value_parser(value_parser!(String))
+                    .required(false)
+                    .value_parser(value_parser!(String)),
             )
             .arg(
                 arg!(-l --loglevel <LOGLEVEL> "Sets log level")
-                .required(false)
-                    .value_parser(value_parser!(String))
+                    .required(false)
+                    .value_parser(value_parser!(String)),
             )
             .get_matches();
 
         let mut configs_builder = Self::builder();
-        
+
         if let Some(base_dir) = matches.get_one::<PathBuf>("base_dir") {
             if !base_dir.exists() {
                 println!("Error: {:?} does not exist.", base_dir);
@@ -98,7 +105,7 @@ impl Default for ServerConfigs {
 struct ServerConfigsBuilder {
     base_dir: Option<PathBuf>,
     host: Option<String>,
-    port: Option<u16>, 
+    port: Option<u16>,
     log_level: Option<log::Level>,
 }
 
@@ -107,25 +114,29 @@ impl ServerConfigsBuilder {
         self.base_dir = Some(path.to_owned());
         self
     }
+
     fn host(&mut self, host: &str) -> &Self {
         self.host = Some(host.to_string());
         self
     }
-    fn port(&mut self, port: u16) -> &Self { 
+
+    fn port(&mut self, port: u16) -> &Self {
         self.port = Some(port);
         self
     }
+
     fn log_level(&mut self, log_level: &str) -> &Self {
         let log_level = match log_level {
             "error" => log::Level::Error,
-            "warn"  => log::Level::Warn,
+            "warn" => log::Level::Warn,
             "debug" => log::Level::Debug,
             "trace" => log::Level::Trace,
-            _       => log::Level::Info,
+            _ => log::Level::Info,
         };
         self.log_level = Some(log_level);
         self
     }
+
     fn build(mut self) -> ServerConfigs {
         let mut config = ServerConfigs::default();
 
@@ -149,32 +160,51 @@ impl ServerConfigsBuilder {
 #[derive(Deserialize)]
 struct FileRequest {
     path: String,
-    forced_display: bool,
+    force_display: Option<bool>,
 }
 
 #[get("/")]
 async fn serve_static_file(
     configs: Data<ServerConfigs>,
-    req: HttpRequest,
     file_request: Query<FileRequest>,
 ) -> impl Responder {
-    info!("Getting file with path: {}, forced_display: {}",
-        file_request.path, file_request.forced_display);
+    // TODO: Add request ID for debugging purposes
+    info!("Getting file with path: {}", file_request.path);
+    debug!("Forced_display: {:?}", file_request.force_display);
 
     let mut file_path = configs.base_dir.clone();
     file_path.push(&file_request.path);
 
-    let file_result = NamedFile::open(dbg!(file_path));
+    let file_result = NamedFile::open(&file_path);
 
     match file_result {
         Ok(file) => {
-            file.into_response(&req)
-        },
+            let file = file.file();
+            let bytes = file.bytes().map(|byte| byte.unwrap()).collect::<Vec<_>>();
+
+            let mut response_builder = HttpResponse::Ok();
+
+            match file_request.force_display {
+                Some(force_display) if force_display => {
+                    response_builder.insert_header(header::ContentType::plaintext());
+                }
+                _ => {
+                    // get file mimetype from file name
+                    let mime_type = match mime_guess::from_path(file_path).first() {
+                        Some(mime) => dbg!(mime).to_string(),
+                        None => "text/plain".to_string(),
+                    };
+                    dbg!(&mime_type);
+                    response_builder.insert_header(("Content-Type", mime_type.as_str()));
+                }
+            }
+
+            response_builder.body(bytes)
+        }
         Err(_) => {
             let message = format!("Failed to get file with path: {}", file_request.path);
             info!("{}", message);
-            HttpResponse::NotFound()
-                .body(message)
+            HttpResponse::NotFound().body(message)
         }
     }
 }
@@ -183,13 +213,16 @@ async fn serve_static_file(
 async fn main() -> std::io::Result<()> {
     // Read configs from cli
     let configs = ServerConfigs::from_env_args();
-    let shared_configs =  configs.clone();
+    let shared_configs = configs.clone();
 
     env::set_var("RUST_LOG", configs.log_level.to_string());
     env_logger::init();
 
     info!("Starting server with configs: {:?}", configs);
-    info!("Server will be listening at {}:{}", configs.host, configs.port);
+    info!(
+        "Server will be listening at {}:{}",
+        configs.host, configs.port
+    );
 
     HttpServer::new(move || {
         App::new()

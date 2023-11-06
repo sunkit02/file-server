@@ -561,6 +561,7 @@ dependencies = [
  "clap",
  "env_logger",
  "log",
+ "mime_guess",
  "serde",
 ]
 
