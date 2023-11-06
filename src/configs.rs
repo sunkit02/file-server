@@ -11,6 +11,18 @@ pub struct ServerConfigs {
     pub workers: usize,
 }
 
+impl Default for ServerConfigs {
+    fn default() -> Self {
+        Self {
+            base_dir: PathBuf::from("./"),
+            host: "127.0.0.1".to_string(),
+            port: 8080,
+            log_level: log::Level::Info,
+            workers: 2,
+        }
+    }
+}
+
 impl ServerConfigs {
     pub fn builder() -> ServerConfigsBuilder {
         ServerConfigsBuilder {
@@ -25,27 +37,27 @@ impl ServerConfigs {
     pub fn from_cli_args() -> Self {
         let matches = command!()
             .arg(
-                arg!([base_dir] "Optional base directory to serve")
+                arg!([base_dir] "Optional base directory to serve. Current working directory by default.")
                     .required(false)
                     .value_parser(value_parser!(PathBuf)),
             )
             .arg(
-                arg!(-p --port <PORT> "Sets custom port")
+                arg!(-p --port <PORT> "Sets custom port. Default = 8080")
                     .required(false)
                     .value_parser(value_parser!(u16)),
             )
             .arg(
-                arg!(-H --host <HOST> "Sets custom host")
+                arg!(-H --host <HOST> "Sets custom host. Default = 127.0.0.1")
                     .required(false)
                     .value_parser(value_parser!(String)),
             )
             .arg(
-                arg!(-l --loglevel <LOGLEVEL> "Sets log level")
+                arg!(-l --loglevel <LOGLEVEL> "Sets log level. Default = info")
                     .required(false)
                     .value_parser(value_parser!(String)),
             )
             .arg(
-                arg!(-w --workers <WORKERS> "Sets number of worker threads")
+                arg!(-w --workers <WORKERS> "Sets number of worker threads. Default = 2")
                     .required(false)
                     .value_parser(value_parser!(usize)),
             )
@@ -84,18 +96,6 @@ impl ServerConfigs {
         }
 
         configs_builder.build()
-    }
-}
-
-impl Default for ServerConfigs {
-    fn default() -> Self {
-        Self {
-            base_dir: PathBuf::from("./"),
-            host: "127.0.0.1".to_string(),
-            port: 8080,
-            log_level: log::Level::Info,
-            workers: 2,
-        }
     }
 }
 
