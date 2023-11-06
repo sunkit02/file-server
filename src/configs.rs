@@ -1,4 +1,4 @@
-use clap::{self, arg, command, value_parser};
+use clap::{arg, command, value_parser};
 
 use std::path::PathBuf;
 
@@ -8,6 +8,7 @@ pub struct ServerConfigs {
     pub host: String,
     pub port: u16,
     pub log_level: log::Level,
+    pub workers: usize,
 }
 
 impl ServerConfigs {
@@ -17,6 +18,7 @@ impl ServerConfigs {
             host: None,
             port: None,
             log_level: None,
+            workers: None,
         }
     }
 
@@ -41,6 +43,11 @@ impl ServerConfigs {
                 arg!(-l --loglevel <LOGLEVEL> "Sets log level")
                     .required(false)
                     .value_parser(value_parser!(String)),
+            )
+            .arg(
+                arg!(-w --workers <WORKERS> "Sets number of worker threads")
+                    .required(false)
+                    .value_parser(value_parser!(usize)),
             )
             .get_matches();
 
@@ -72,6 +79,9 @@ impl ServerConfigs {
         if let Some(log_level) = matches.get_one::<String>("loglevel") {
             configs_builder.log_level(log_level);
         }
+        if let Some(&workers) = matches.get_one::<usize>("workers") {
+            configs_builder.workers(workers);
+        }
 
         configs_builder.build()
     }
@@ -84,6 +94,7 @@ impl Default for ServerConfigs {
             host: "127.0.0.1".to_string(),
             port: 8080,
             log_level: log::Level::Info,
+            workers: 2,
         }
     }
 }
@@ -94,6 +105,7 @@ pub struct ServerConfigsBuilder {
     host: Option<String>,
     port: Option<u16>,
     log_level: Option<log::Level>,
+    workers: Option<usize>,
 }
 
 impl ServerConfigsBuilder {
@@ -124,6 +136,11 @@ impl ServerConfigsBuilder {
         self
     }
 
+    pub fn workers(&mut self, workers: usize) -> &Self {
+        self.workers = Some(workers);
+        self
+    }
+
     pub fn build(mut self) -> ServerConfigs {
         let mut config = ServerConfigs::default();
 
@@ -138,6 +155,9 @@ impl ServerConfigsBuilder {
         }
         if let Some(log_level) = self.log_level.take() {
             config.log_level = log_level;
+        }
+        if let Some(workers) = self.workers.take() {
+            config.workers = workers;
         }
 
         config
