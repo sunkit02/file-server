@@ -2,7 +2,7 @@ use actix_files::NamedFile;
 use actix_web::{
     get,
     http::header::ContentType,
-    web::{Data, Query},
+    web::{Data, Query, Path},
     HttpResponse, Responder,
 };
 use log::{debug, info};
@@ -15,21 +15,22 @@ use crate::configs::ServerConfigs;
 
 #[derive(Deserialize)]
 struct FileRequest {
-    path: String,
+    #[serde(rename = "force-display")]
     force_display: Option<bool>,
 }
 
-#[get("/api/v1/files")]
+#[get("/api/v1/files/{path:.*}")]
 async fn serve_static_file(
     configs: Data<ServerConfigs>,
-    file_request: Query<FileRequest>,
+    path: Path<String>,
+    query: Query<FileRequest>,
 ) -> impl Responder {
     // TODO: Add request ID for debugging purposes
-    info!("Getting file with path: {}", file_request.path);
-    debug!("Forced_display: {:?}", file_request.force_display);
+    info!("Getting file with path: {}", path);
+    debug!("Forced_display: {:?}", query.force_display);
 
     let mut file_path = configs.base_dir.clone();
-    file_path.push(&file_request.path);
+    file_path.push(path.as_str());
 
     let file_bytes = match NamedFile::open(&file_path) {
         Ok(file) => {
@@ -37,7 +38,7 @@ async fn serve_static_file(
             file.bytes().map(|byte| byte.unwrap()).collect::<Vec<_>>()
         }
         Err(_) => {
-            let message = format!("Failed to get file with path: {}", file_request.path);
+            let message = format!("Failed to get file with path: {}", path);
             info!("{}", message);
 
             return HttpResponse::NotFound().body(message);
@@ -47,7 +48,7 @@ async fn serve_static_file(
     let mut response_builder = HttpResponse::Ok();
 
     // Determine if `text/plain` is used to force browser to display the file contents
-    match file_request.force_display {
+    match query.force_display {
         Some(force_display) if force_display => {
             response_builder.insert_header(ContentType::plaintext());
         }

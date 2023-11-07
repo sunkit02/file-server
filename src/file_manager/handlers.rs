@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use actix_web::{get, http::header::ContentType, HttpResponse, Responder, web::{Data, Query}};
+use actix_web::{get, http::header::ContentType, HttpResponse, Responder, web::{Data, Query, Path}};
 use log::info;
 use serde::Deserialize;
 
@@ -26,21 +26,19 @@ pub async fn favicon() -> impl Responder {
 
 #[derive(Debug, Deserialize)]
 pub struct DirectoryStructureQuery {
-    path: String,
     recursive: Option<bool>,
 }
 
-// TODO: Sanitize path for all directory entries to hide full path and only 
-// show starting from base path
-#[get("/api/v1/directory-structure")]
+#[get("/api/v1/directory-structure/{path:.*}")]
 pub async fn dir_structure(
     configs: Data<ServerConfigs>,
+    path: Path<String>,
     query: Query<DirectoryStructureQuery>
 ) -> impl Responder {
-    info!("Getting directory structure for path: {}", query.path);
+    info!("Getting directory structure for path: {}", path);
 
     let mut root_dir_path = configs.base_dir.clone();
-    root_dir_path.push(&query.path);
+    root_dir_path.push(path.as_str());
 
     let metadata = match fs::metadata(&root_dir_path) {
         Ok(metadata) => metadata,
@@ -75,6 +73,7 @@ pub async fn dir_structure(
     
     match get_dir_structure_result {
         Ok(_) => {
+            base_dir.sanitize_path(&configs.base_dir.to_string_lossy());
             return HttpResponse::Ok()
                 .insert_header(ContentType::json())
                 .body(serde_json::to_string(&base_dir).unwrap());
