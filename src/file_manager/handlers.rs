@@ -8,11 +8,20 @@ use crate::configs::ServerConfigs;
 
 use super::models::{DirectoryEntry, Directory};
 
-#[get("")]
+#[get("/")]
 pub async fn home_page() -> impl Responder {
+    info!("Getting home page");
     HttpResponse::Ok()
         .insert_header(ContentType::html())
         .body("<h1>Home Page</h1>")
+}
+
+#[get("/favicon.ico")]
+pub async fn favicon() -> impl Responder {
+    let favicon_bytes = include_bytes!("../../public/folder.svg").as_slice();
+    HttpResponse::Ok()
+        .insert_header(("Content-Type", "image/svg+xml"))
+        .body(favicon_bytes)
 }
 
 #[derive(Debug, Deserialize)]
@@ -21,7 +30,9 @@ pub struct DirectoryStructureQuery {
     recursive: Option<bool>,
 }
 
-#[get("/directory-structure")]
+// TODO: Sanitize path for all directory entries to hide full path and only 
+// show starting from base path
+#[get("/api/v1/directory-structure")]
 pub async fn dir_structure(
     configs: Data<ServerConfigs>,
     query: Query<DirectoryStructureQuery>

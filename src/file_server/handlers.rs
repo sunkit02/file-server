@@ -19,7 +19,7 @@ struct FileRequest {
     force_display: Option<bool>,
 }
 
-#[get("")]
+#[get("/api/v1/files")]
 async fn serve_static_file(
     configs: Data<ServerConfigs>,
     file_request: Query<FileRequest>,
