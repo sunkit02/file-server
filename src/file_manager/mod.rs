@@ -5,5 +5,8 @@ pub mod models;
 pub mod templates;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(web::scope("/").service(handlers::home_page));
+    cfg
+        .service(web::scope("/").service(handlers::home_page))
+        .service(web::scope("/api/v1").service(handlers::dir_structure));
+
 }

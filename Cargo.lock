@@ -563,6 +563,7 @@ dependencies = [
  "log",
  "mime_guess",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
