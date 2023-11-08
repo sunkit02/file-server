@@ -79,10 +79,13 @@ pub async fn directory_structure_template(
         entries: Vec::new(),
     };
 
+
     let get_dir_structure_result = match query.recursive {
         Some(recursive) if recursive => get_directory_structure_recursive(&mut base_dir),
         _ => get_directory_structure(&mut base_dir),
     };
+
+    base_dir.sort_entries();
 
     match get_dir_structure_result {
         Ok(_) => {
