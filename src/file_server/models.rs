@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use askama::Template;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -10,7 +11,8 @@ pub struct Directory {
     pub path: PathBuf,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Template)]
+#[template(path = "directory-entry.html", escape = "none")]
 pub enum DirectoryEntry {
     Directory(Directory),
     File {

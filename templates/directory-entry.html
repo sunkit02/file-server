@@ -1,0 +1,15 @@
+{% match self %}
+  {% when DirectoryEntry::Directory with (directory) %}
+    <li>
+      <span>{{directory.name}} (D)</span>
+      <ul>
+        {% for entry in directory.entries %}
+          {{entry}}
+        {% endfor %}
+      </ul>
+    </li>
+  {% when DirectoryEntry::File with { name, path } %}
+  <li>
+    {{name}}
+  </li>
+{% endmatch %}

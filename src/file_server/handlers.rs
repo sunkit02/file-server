@@ -69,7 +69,7 @@ async fn serve_static_file(
 
 #[derive(Debug, Deserialize)]
 pub struct DirectoryStructureQuery {
-    recursive: Option<bool>,
+    pub recursive: Option<bool>,
 }
 
 #[get("/api/v1/directory-structure/{path:.*}")]
@@ -125,7 +125,7 @@ pub async fn dir_structure(
     }
 }
 
-fn get_directory_structure(root_directory: &mut Directory) -> std::io::Result<()> {
+pub fn get_directory_structure(root_directory: &mut Directory) -> std::io::Result<()> {
     let root_entries = fs::read_dir(&root_directory.path)?.flatten();
 
     for root_entry in root_entries {
@@ -155,7 +155,7 @@ fn get_directory_structure(root_directory: &mut Directory) -> std::io::Result<()
     Ok(())
 }
 
-fn get_directory_structure_recursive(root_directory: &mut Directory) -> std::io::Result<()> {
+pub fn get_directory_structure_recursive(root_directory: &mut Directory) -> std::io::Result<()> {
     let root_entries = fs::read_dir(&root_directory.path)?.flatten();
 
     for root_entry in root_entries {
