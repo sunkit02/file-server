@@ -1,6 +1,5 @@
 use askama::Template;
-
-use crate::file_server::models::Directory;
+use file_server_core::Directory;
 
 #[derive(Debug, Template)]
 #[template(path = "index.html")]

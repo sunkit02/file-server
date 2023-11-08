@@ -15,10 +15,7 @@ pub struct Directory {
 #[template(path = "directory-entry.html", escape = "none")]
 pub enum DirectoryEntry {
     Directory(Directory),
-    File {
-        name: String,
-        path: PathBuf,
-    }
+    File { name: String, path: PathBuf },
 }
 
 impl Directory {
@@ -29,17 +26,11 @@ impl Directory {
 
     fn remove_base_path(root: &mut Directory, base_path: &str) {
         root.path = PathBuf::from(root.path.to_string_lossy().replacen(base_path, "", 1));
-        root.entries
-            .iter_mut()
-            .for_each(|entry| {
-                match entry {
-                    DirectoryEntry::Directory(dir) => {
-                        Self::remove_base_path(dir, base_path)
-                    },
-                    DirectoryEntry::File { name: _, path } => {
-                        *path = PathBuf::from(path.to_string_lossy().replacen(base_path, "", 1))
-                    },
-                }
-            })
+        root.entries.iter_mut().for_each(|entry| match entry {
+            DirectoryEntry::Directory(dir) => Self::remove_base_path(dir, base_path),
+            DirectoryEntry::File { name: _, path } => {
+                *path = PathBuf::from(path.to_string_lossy().replacen(base_path, "", 1))
+            }
+        })
     }
 }
