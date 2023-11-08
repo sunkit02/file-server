@@ -57,7 +57,7 @@ async fn serve_static_file(
         _ => {
             // get file mimetype from file name
             let mime_type = match mime_guess::from_path(file_path).first() {
-                Some(mime) => dbg!(mime).to_string(),
+                Some(mime) => mime.to_string(),
                 None => "text/plain".to_string(),
             };
             response_builder.insert_header(("Content-Type", mime_type.as_str()));
