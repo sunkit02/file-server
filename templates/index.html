@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>File Manager</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://unpkg.com/htmx.org@1.9.4/dist/htmx.min.js"></script>
+    <script>
+    function stopEventPropagation(e) {
+      e.stopPropagation()
+    }
+    </script>
+    <style>{{css_content}}</style>
+  </head>
+  <body>
+    <header>
+      <h1>File Manager</h1>
+    </header>
+    <main>
+      <nav id="side-nav-bar">
+        <h3 id="base-dir-name-container"></h3>
+        <section 
+          id="program-list-container"
+          hx-get="/manager/api/v1/directory-structure/"
+          hx-swap="innerHTML"
+          hx-target="#program-list-container"
+          hx-trigger="load"
+        ></section>
+      </nav>
+      <textarea id="preview-container" readonly></textarea>
+    </main>
+  </body>
+</html>

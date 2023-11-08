@@ -1,4 +1,4 @@
-use clap::{self, arg, command, value_parser};
+use clap::{arg, command, value_parser};
 
 use std::path::PathBuf;
 
@@ -8,6 +8,19 @@ pub struct ServerConfigs {
     pub host: String,
     pub port: u16,
     pub log_level: log::Level,
+    pub workers: usize,
+}
+
+impl Default for ServerConfigs {
+    fn default() -> Self {
+        Self {
+            base_dir: PathBuf::from("./"),
+            host: "127.0.0.1".to_string(),
+            port: 8080,
+            log_level: log::Level::Info,
+            workers: 2,
+        }
+    }
 }
 
 impl ServerConfigs {
@@ -17,30 +30,36 @@ impl ServerConfigs {
             host: None,
             port: None,
             log_level: None,
+            workers: None,
         }
     }
 
     pub fn from_cli_args() -> Self {
         let matches = command!()
             .arg(
-                arg!([base_dir] "Optional base directory to serve")
+                arg!([base_dir] "Optional base directory to serve. Current working directory by default.")
                     .required(false)
                     .value_parser(value_parser!(PathBuf)),
             )
             .arg(
-                arg!(-p --port <PORT> "Sets custom port")
+                arg!(-p --port <PORT> "Sets custom port. Default = 8080")
                     .required(false)
                     .value_parser(value_parser!(u16)),
             )
             .arg(
-                arg!(-H --host <HOST> "Sets custom host")
+                arg!(-H --host <HOST> "Sets custom host. Default = 127.0.0.1")
                     .required(false)
                     .value_parser(value_parser!(String)),
             )
             .arg(
-                arg!(-l --loglevel <LOGLEVEL> "Sets log level")
+                arg!(-l --loglevel <LOGLEVEL> "Sets log level. Default = info")
                     .required(false)
                     .value_parser(value_parser!(String)),
+            )
+            .arg(
+                arg!(-w --workers <WORKERS> "Sets number of worker threads. Default = 2")
+                    .required(false)
+                    .value_parser(value_parser!(usize)),
             )
             .get_matches();
 
@@ -72,19 +91,11 @@ impl ServerConfigs {
         if let Some(log_level) = matches.get_one::<String>("loglevel") {
             configs_builder.log_level(log_level);
         }
+        if let Some(&workers) = matches.get_one::<usize>("workers") {
+            configs_builder.workers(workers);
+        }
 
         configs_builder.build()
-    }
-}
-
-impl Default for ServerConfigs {
-    fn default() -> Self {
-        Self {
-            base_dir: PathBuf::from("./"),
-            host: "127.0.0.1".to_string(),
-            port: 8080,
-            log_level: log::Level::Info,
-        }
     }
 }
 
@@ -94,6 +105,7 @@ pub struct ServerConfigsBuilder {
     host: Option<String>,
     port: Option<u16>,
     log_level: Option<log::Level>,
+    workers: Option<usize>,
 }
 
 impl ServerConfigsBuilder {
@@ -124,6 +136,11 @@ impl ServerConfigsBuilder {
         self
     }
 
+    pub fn workers(&mut self, workers: usize) -> &Self {
+        self.workers = Some(workers);
+        self
+    }
+
     pub fn build(mut self) -> ServerConfigs {
         let mut config = ServerConfigs::default();
 
@@ -138,6 +155,9 @@ impl ServerConfigsBuilder {
         }
         if let Some(log_level) = self.log_level.take() {
             config.log_level = log_level;
+        }
+        if let Some(workers) = self.workers.take() {
+            config.workers = workers;
         }
 
         config
