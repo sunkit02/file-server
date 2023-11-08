@@ -42,3 +42,35 @@ main {
 
   overflow: scroll;
 }
+
+.entry-list-container {
+  display: flex;
+  flex-direction: row;
+}
+
+.directory-entry {
+  display: flex;
+  justify-items: right;
+  width: 80%;
+}
+
+.directory-entry-name {
+  transition-duration: 300ms;
+}
+
+.directory-entry-name:hover {
+  background-color: whitesmoke;
+  cursor: pointer;
+}
+
+.directory {
+  background-color: lightgrey;
+}
+
+.file {
+  background-color: beige;
+}
+
+.list-spacer {
+  width: 1rem;
+}

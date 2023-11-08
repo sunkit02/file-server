@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 
-use askama::Template;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -11,8 +10,7 @@ pub struct Directory {
     pub path: PathBuf,
 }
 
-#[derive(Debug, Serialize, Template)]
-#[template(path = "directory-entry.html", escape = "none")]
+#[derive(Debug, Serialize)]
 pub enum DirectoryEntry {
     Directory(Directory),
     File { name: String, path: PathBuf },
@@ -21,7 +19,9 @@ pub enum DirectoryEntry {
 impl Directory {
     // TODO: Optimize the sanitization process to avoid copying
     pub fn sanitize_path(&mut self, base_path: &str) {
-        Self::remove_base_path(self, base_path);
+        let mut base_path = base_path.to_owned();
+        base_path.push('/');
+        Self::remove_base_path(self, &base_path);
     }
 
     fn remove_base_path(root: &mut Directory, base_path: &str) {

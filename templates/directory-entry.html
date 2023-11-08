@@ -1,15 +1,24 @@
 {% match self %}
-  {% when DirectoryEntry::Directory with (directory) %}
-    <li>
-      <span>{{directory.name}} (D)</span>
-      <ul>
-        {% for entry in directory.entries %}
-          {{entry}}
-        {% endfor %}
-      </ul>
+  {% when DirectoryEntryTemplate::Directory with (directory) %}
+    <li 
+      class="directory"
+      hx-get="/manager/api/v1/directory-structure/{{directory.path}}"
+      hx-target="this"
+      hx-swap="innerHTML"
+      hx-trigger="click"
+      onclick="stopEventPropagation(event)"
+    >
+      <h4 class="directory-entry-name">{{directory.name}}</h4>
     </li>
-  {% when DirectoryEntry::File with { name, path } %}
-  <li>
-    {{name}}
-  </li>
+  {% when DirectoryEntryTemplate::File with { name, path } %}
+    <li 
+      class="file directory-entry directory-entry-name"
+      hx-get="/api/v1/files/{{path}}"
+      hx-swap="innerHTML"
+      hx-trigger="click"
+      hx-target="#preview-container"
+      onclick="stopEventPropagation(event)"
+    >
+      {{name}}
+    </li>
 {% endmatch %}

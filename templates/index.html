@@ -5,6 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://unpkg.com/htmx.org@1.9.4/dist/htmx.min.js"></script>
+    <script>
+    function stopEventPropagation(e) {
+      e.stopPropagation()
+    }
+    </script>
     <style>{{css_content}}</style>
   </head>
   <body>
@@ -22,8 +27,7 @@
           hx-trigger="load"
         ></section>
       </nav>
-      <article id="preview-container">
-      </article>
+      <textarea id="preview-container"></textarea>
     </main>
   </body>
 </html>

@@ -10,7 +10,7 @@ use askama::Template;
 use file_server_core::*;
 use log::{debug, info};
 
-use crate::configs::ServerConfigs;
+use crate::{configs::ServerConfigs, file_manager::templates::DirectoryTemplate};
 use crate::file_manager::templates::{HomePageTemplate, ProgramListTemplate};
 use crate::file_server::handlers::DirectoryStructureQuery;
 
@@ -45,7 +45,16 @@ pub async fn directory_structure_template(
     debug!("Query: {:?}", query);
 
     let mut root_dir_path = configs.base_dir.clone();
-    root_dir_path.push(path.as_str());
+
+    // Remove prefix '/' for queries not pointing to base_dir
+    // TODO: Solve this in a cleaner way (at the type level)
+    let mut path = path.into_inner();
+    if path.len() >= 1 && path.starts_with("/") {
+        // Remove the '/'
+        path.remove(0);
+    }
+    
+    root_dir_path.push(path);
 
     let metadata = match fs::metadata(&root_dir_path) {
         Ok(metadata) => metadata,
@@ -78,7 +87,13 @@ pub async fn directory_structure_template(
     match get_dir_structure_result {
         Ok(_) => {
             base_dir.sanitize_path(&configs.base_dir.to_string_lossy());
-            let template = ProgramListTemplate { base_dir }.render().unwrap();
+
+            let template = ProgramListTemplate { 
+                base_dir: DirectoryTemplate::from(base_dir),
+            }
+            .render()
+            .unwrap();
+
             return HttpResponse::Ok()
                 .insert_header(ContentType::html())
                 .body(template);

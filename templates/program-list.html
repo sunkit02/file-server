@@ -1,6 +1,9 @@
-<ul>
-  <h4>{{base_dir.name}}</h4>
-  {% for entry in base_dir.entries %}
-    {{entry}}
-  {% endfor %}
-</ul>
+<h4 class="directory-entry-name">{{base_dir.name}}</h4>
+<div class="entry-list-container">
+  <div class="list-spacer"></div>
+  <ul class="entry-list">
+    {% for entry in base_dir.entries %}
+      {{entry}}
+    {% endfor %}
+  </ul>
+</div>
