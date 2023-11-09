@@ -88,7 +88,7 @@ pub async fn directory_structure_template(
             base_dir.sanitize_path(&configs.base_dir.to_string_lossy());
 
             let template = ProgramListTemplate { 
-                base_dir: DirectoryTemplate::from(base_dir),
+                base_dir: DirectoryTemplate::from(&base_dir),
             }
             .render()
             .unwrap();

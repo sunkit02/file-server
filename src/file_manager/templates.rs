@@ -9,42 +9,45 @@ pub struct HomePageTemplate {
 
 #[derive(Debug, Template)]
 #[template(path = "program-list.html", escape = "none")]
-pub struct ProgramListTemplate {
-    pub base_dir: DirectoryTemplate,
+pub struct ProgramListTemplate<'a> {
+    pub base_dir: DirectoryTemplate<'a>,
 }
 
 #[derive(Debug)]
-pub struct DirectoryTemplate {
-    pub name: String,
+pub struct DirectoryTemplate<'a> {
+    pub name: &'a str,
     // TODO: Make optional to represent unvisited state (Or use enum?)
-    pub entries: Vec<DirectoryEntryTemplate>,
+    pub entries: Vec<DirectoryEntryTemplate<'a>>,
     pub path: String,
 }
 
 #[derive(Debug, Template)]
 #[template(path = "directory-entry.html", escape = "none")]
-pub enum DirectoryEntryTemplate {
-    Directory(DirectoryTemplate),
-    File { name: String, path: String },
+pub enum DirectoryEntryTemplate<'a> {
+    Directory(DirectoryTemplate<'a>),
+    File { 
+        name: &'a str,
+        path: String 
+    },
 }
 
-impl From<Directory> for DirectoryTemplate {
-    fn from(value: Directory) -> Self {
+impl<'a> From<&'a Directory> for DirectoryTemplate<'a> {
+    fn from(value: &'a Directory) -> Self {
         let entries = value.entries
-            .into_iter()
+            .iter()
             .map(DirectoryEntryTemplate::from)
             .collect();
 
         Self { 
-            name: value.name,
+            name: &value.name,
             entries,
             path: value.path.to_str().unwrap_or("").to_owned(),
         }
     }
 }
 
-impl From<DirectoryEntry> for DirectoryEntryTemplate {
-    fn from(value: DirectoryEntry) -> Self {
+impl<'a> From<&'a DirectoryEntry> for DirectoryEntryTemplate<'a> {
+    fn from(value: &'a DirectoryEntry) -> Self {
         match value {
             DirectoryEntry::Directory(directory) => {
                 let directory = DirectoryTemplate::from(directory);
