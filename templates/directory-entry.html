@@ -6,6 +6,7 @@
       hx-target="this"
       hx-swap="innerHTML"
       hx-trigger="click"
+      hx-vals='{"expanded": {{directory.expanded}}}'
       onclick="stopEventPropagation(event)"
     >
       <h4 class="directory-entry-name">{{directory.name}}</h4>

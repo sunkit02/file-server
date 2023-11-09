@@ -6,7 +6,7 @@ use actix_web::{
     HttpResponse, Responder,
 };
 use file_server_core::*;
-use log::{debug, info};
+use log::info;
 use mime_guess;
 use serde::Deserialize;
 

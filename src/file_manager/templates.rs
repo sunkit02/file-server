@@ -11,6 +11,7 @@ pub struct HomePageTemplate {
 #[template(path = "program-list.html", escape = "none")]
 pub struct ProgramListTemplate<'a> {
     pub base_dir: DirectoryTemplate<'a>,
+    pub expanded: bool,
 }
 
 #[derive(Debug)]
@@ -19,6 +20,7 @@ pub struct DirectoryTemplate<'a> {
     // TODO: Make optional to represent unvisited state (Or use enum?)
     pub entries: Vec<DirectoryEntryTemplate<'a>>,
     pub path: String,
+    pub expanded: bool,
 }
 
 #[derive(Debug, Template)]
@@ -40,6 +42,7 @@ impl<'a> From<&'a Directory> for DirectoryTemplate<'a> {
             name: &value.name,
             entries,
             path: value.path.to_str().unwrap_or("").to_owned(),
+            expanded: false,
         }
     }
 }

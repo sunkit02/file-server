@@ -9,9 +9,9 @@ use actix_web::{
 use askama::Template;
 use file_server_core::*;
 use log::debug;
+use serde::Deserialize;
 
 use crate::file_manager::templates::{HomePageTemplate, ProgramListTemplate};
-use crate::file_server::handlers::DirectoryStructureQuery;
 use crate::{
     configs::ServerConfigs,
     file_manager::templates::{DirectoryTemplate, FileContentTemplate},
@@ -37,12 +37,20 @@ pub async fn favicon() -> impl Responder {
         .body(favicon_bytes)
 }
 
+#[derive(Debug, Deserialize)]
+pub struct FileManagerDirectoryStructureQuery {
+    pub recursive: Option<bool>,
+    pub expanded: Option<bool>,
+}
+
 #[get("/manager/api/v1/directory-structure/{path:.*}")]
 pub async fn directory_structure_template(
     configs: Data<ServerConfigs>,
     path: Path<String>,
-    query: Query<DirectoryStructureQuery>,
+    query: Query<FileManagerDirectoryStructureQuery>,
 ) -> impl Responder {
+    dbg!(query.expanded);
+
     let mut root_dir_path = configs.base_dir.clone();
 
     // Remove prefix '/' for queries not pointing to base_dir
@@ -78,6 +86,24 @@ pub async fn directory_structure_template(
         entries: Vec::new(),
     };
 
+    // Return early if expanded
+    if let Some(expanded) = query.expanded {
+        if expanded == true {
+            base_dir.sanitize_path(&configs.base_dir.to_string_lossy());
+
+            let template = ProgramListTemplate {
+                base_dir: DirectoryTemplate::from(&base_dir),
+                expanded: false,
+            }
+            .render()
+            .unwrap();
+
+            return HttpResponse::Ok()
+                .insert_header(ContentType::html())
+                .body(template);
+        }
+    }
+
     let get_dir_structure_result = match query.recursive {
         Some(recursive) if recursive => get_directory_structure_recursive(&mut base_dir),
         _ => get_directory_structure(&mut base_dir),
@@ -91,6 +117,7 @@ pub async fn directory_structure_template(
 
             let template = ProgramListTemplate {
                 base_dir: DirectoryTemplate::from(&base_dir),
+                expanded: true,
             }
             .render()
             .unwrap();
