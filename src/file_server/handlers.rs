@@ -28,9 +28,6 @@ async fn serve_static_file(
     query: Query<FileRequest>,
 ) -> impl Responder {
     // TODO: Add request ID for debugging purposes
-    info!("Getting file with path: {}", path);
-    debug!("Forced_display: {:?}", query.force_display);
-
     let mut file_path = configs.base_dir.clone();
     file_path.push(path.as_str());
 
@@ -78,8 +75,6 @@ pub async fn dir_structure(
     path: Path<String>,
     query: Query<DirectoryStructureQuery>,
 ) -> impl Responder {
-    info!("Getting directory structure for path: {}", path);
-
     let mut root_dir_path = configs.base_dir.clone();
     root_dir_path.push(path.as_str());
 

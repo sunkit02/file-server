@@ -18,7 +18,6 @@ const CSS_FILE: &'static [u8] = include_bytes!("../../public/css/main.css");
 
 #[get("/")]
 pub async fn home_page() -> impl Responder {
-    info!("Getting home page");
     let css_content = String::from_utf8(Vec::from(CSS_FILE)).unwrap_or("".to_string());
     let template = HomePageTemplate { css_content }.render().unwrap();
 
@@ -41,9 +40,6 @@ pub async fn directory_structure_template(
     path: Path<String>,
     query: Query<DirectoryStructureQuery>,
 ) -> impl Responder {
-    info!("Getting directory structure for path: {}", path);
-    debug!("Query: {:?}", query);
-
     let mut root_dir_path = configs.base_dir.clone();
 
     // Remove prefix '/' for queries not pointing to base_dir
