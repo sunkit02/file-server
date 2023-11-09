@@ -13,7 +13,7 @@
   {% when DirectoryEntryTemplate::File with { name, path } %}
     <li 
       class="file directory-entry directory-entry-name"
-      hx-get="/api/v1/files/{{path}}"
+      hx-get="/manager/api/v1/file-content/{{path}}"
       hx-swap="innerHTML"
       hx-trigger="click"
       hx-target="#preview-container"

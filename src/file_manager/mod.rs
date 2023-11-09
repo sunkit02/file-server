@@ -6,5 +6,6 @@ pub mod templates;
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(handlers::home_page)
         .service(handlers::favicon)
-        .service(handlers::directory_structure_template);
+        .service(handlers::directory_structure_template)
+        .service(handlers::file_content);
 }

@@ -25,20 +25,18 @@ pub struct DirectoryTemplate<'a> {
 #[template(path = "directory-entry.html", escape = "none")]
 pub enum DirectoryEntryTemplate<'a> {
     Directory(DirectoryTemplate<'a>),
-    File { 
-        name: &'a str,
-        path: String 
-    },
+    File { name: &'a str, path: String },
 }
 
 impl<'a> From<&'a Directory> for DirectoryTemplate<'a> {
     fn from(value: &'a Directory) -> Self {
-        let entries = value.entries
+        let entries = value
+            .entries
             .iter()
             .map(DirectoryEntryTemplate::from)
             .collect();
 
-        Self { 
+        Self {
             name: &value.name,
             entries,
             path: value.path.to_str().unwrap_or("").to_owned(),
@@ -51,12 +49,19 @@ impl<'a> From<&'a DirectoryEntry> for DirectoryEntryTemplate<'a> {
         match value {
             DirectoryEntry::Directory(directory) => {
                 let directory = DirectoryTemplate::from(directory);
-                Self::Directory(directory) 
-            },
+                Self::Directory(directory)
+            }
             DirectoryEntry::File { name, path } => {
                 let path = path.to_str().unwrap_or("").to_owned();
                 Self::File { name, path }
-            },
+            }
         }
     }
+}
+
+#[derive(Debug, Template)]
+#[template(path = "file-content.html", escape = "none")]
+pub struct FileContentTemplate<'a> {
+    pub name: &'a str,
+    pub path: &'a str,
 }

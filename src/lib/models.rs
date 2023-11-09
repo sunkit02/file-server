@@ -1,4 +1,4 @@
-use std::{path::PathBuf, cmp::Ordering};
+use std::{cmp::Ordering, path::PathBuf};
 
 use serde::Serialize;
 
@@ -45,21 +45,24 @@ impl Directory {
 
     pub fn sort_entries(&mut self) {
         use DirectoryEntry::*;
-        self.entries.sort_by(|a, b| {
-            match (a, b) {
-                (Directory(a), Directory(b)) => {
-                    a.name.cmp(&b.name)
+        self.entries.sort_by(|a, b| match (a, b) {
+            (Directory(a), Directory(b)) => a.name.cmp(&b.name),
+            (
+                File {
+                    name: a_name,
+                    path: _,
                 },
-                (File { name: a_name, path: _ }, File { name: b_name, path: _ }) => {
-                    a_name.cmp(&b_name)
+                File {
+                    name: b_name,
+                    path: _,
                 },
-                _ => {
-                    if a.is_directory() {
-                        Ordering::Less
-                    } else {
-                        Ordering::Greater
-                    }
-                },
+            ) => a_name.cmp(&b_name),
+            _ => {
+                if a.is_directory() {
+                    Ordering::Less
+                } else {
+                    Ordering::Greater
+                }
             }
         })
     }

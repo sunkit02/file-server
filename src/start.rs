@@ -1,6 +1,6 @@
 use std::env;
 
-use actix_web::{web::Data, App, HttpServer, middleware::Logger};
+use actix_web::{middleware::Logger, web::Data, App, HttpServer};
 use log::info;
 
 use crate::{configs::ServerConfigs, file_manager, file_server};

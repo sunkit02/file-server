@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs, path::PathBuf};
 
 use actix_web::{
     get,
@@ -8,11 +8,14 @@ use actix_web::{
 };
 use askama::Template;
 use file_server_core::*;
-use log::{debug, info};
+use log::debug;
 
-use crate::{configs::ServerConfigs, file_manager::templates::DirectoryTemplate};
 use crate::file_manager::templates::{HomePageTemplate, ProgramListTemplate};
 use crate::file_server::handlers::DirectoryStructureQuery;
+use crate::{
+    configs::ServerConfigs,
+    file_manager::templates::{DirectoryTemplate, FileContentTemplate},
+};
 
 const CSS_FILE: &'static [u8] = include_bytes!("../../public/css/main.css");
 
@@ -49,7 +52,7 @@ pub async fn directory_structure_template(
         // Remove the '/'
         path.remove(0);
     }
-    
+
     root_dir_path.push(path);
 
     let metadata = match fs::metadata(&root_dir_path) {
@@ -75,7 +78,6 @@ pub async fn directory_structure_template(
         entries: Vec::new(),
     };
 
-
     let get_dir_structure_result = match query.recursive {
         Some(recursive) if recursive => get_directory_structure_recursive(&mut base_dir),
         _ => get_directory_structure(&mut base_dir),
@@ -87,7 +89,7 @@ pub async fn directory_structure_template(
         Ok(_) => {
             base_dir.sanitize_path(&configs.base_dir.to_string_lossy());
 
-            let template = ProgramListTemplate { 
+            let template = ProgramListTemplate {
                 base_dir: DirectoryTemplate::from(&base_dir),
             }
             .render()
@@ -99,4 +101,24 @@ pub async fn directory_structure_template(
         }
         Err(err) => return HttpResponse::BadRequest().body(err.to_string()),
     }
+}
+
+#[get("/manager/api/v1/file-content/{path:.*}")]
+pub async fn file_content(path: Path<PathBuf>) -> impl Responder {
+    debug!("Path: {:?}", path);
+
+    let path = path.into_inner();
+    let name = path.file_name().unwrap().to_str().unwrap();
+    let template = FileContentTemplate {
+        name,
+        path: path.to_str().unwrap_or(name),
+    }
+    .render()
+    .unwrap();
+
+    debug!("{}", template);
+
+    HttpResponse::Ok()
+        .insert_header(ContentType::html())
+        .body(template)
 }

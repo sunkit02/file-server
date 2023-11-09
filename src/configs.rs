@@ -1,7 +1,7 @@
 use clap::{arg, command, value_parser};
 
-use std::path::PathBuf;
 use std::env;
+use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct ServerConfigs {

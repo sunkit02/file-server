@@ -73,6 +73,29 @@ main {
   width: 1rem;
 }
 
-#preview-container:focus {
+#preview-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  
+  padding: 0 2rem 2rem 2rem;
+}
+
+#preview-container h3 {
+  margin: 1rem;
+}
+
+#preview-container textarea {
+  background-color: beige;
+  width: 100%;
+  height: 100%;
+  padding: 1rem;
+
+  resize: none;
+}
+
+#preview-container textarea:focus {
   outline: none;
+  background-color: beige;
 }
