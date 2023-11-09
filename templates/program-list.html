@@ -1,9 +1,17 @@
-<h4 class="directory-entry-name">{{base_dir.name}}</h4>
-<div class="entry-list-container">
-  <div class="list-spacer"></div>
-  <ul class="entry-list">
-    {% for entry in base_dir.entries %}
+<div
+  hx-get="/manager/api/v1/directory-structure/{{base_dir.path}}"
+  hx-target="this"
+  hx-swap="innerHTML"
+  hx-trigger="click"
+  onclick="stopEventPropagation(event)"
+>
+  <h4 class="directory-entry-name">{{base_dir.name}}</h4>
+  <div class="entry-list-container">
+    <div class="list-spacer"></div>
+    <ul class="entry-list">
+      {% for entry in base_dir.entries %}
       {{entry}}
-    {% endfor %}
-  </ul>
+      {% endfor %}
+    </ul>
+  </div>
 </div>
