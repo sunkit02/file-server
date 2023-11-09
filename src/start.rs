@@ -1,6 +1,6 @@
 use std::env;
 
-use actix_web::{web::Data, App, HttpServer};
+use actix_web::{web::Data, App, HttpServer, middleware::Logger};
 use log::info;
 
 use crate::{configs::ServerConfigs, file_manager, file_server};
@@ -19,6 +19,7 @@ pub async fn start(configs: ServerConfigs) -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
             .app_data(Data::new(shared_configs.clone()))
             .configure(file_server::config)
             .configure(file_manager::config)

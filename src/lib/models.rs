@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, cmp::Ordering};
 
 use serde::Serialize;
 
@@ -16,6 +16,15 @@ pub enum DirectoryEntry {
     File { name: String, path: PathBuf },
 }
 
+impl DirectoryEntry {
+    pub fn is_directory(&self) -> bool {
+        match self {
+            Self::Directory(_) => true,
+            Self::File { name: _, path: _ } => false,
+        }
+    }
+}
+
 impl Directory {
     // TODO: Optimize the sanitization process to avoid copying
     pub fn sanitize_path(&mut self, base_path: &str) {
@@ -30,6 +39,27 @@ impl Directory {
             DirectoryEntry::Directory(dir) => Self::remove_base_path(dir, base_path),
             DirectoryEntry::File { name: _, path } => {
                 *path = PathBuf::from(path.to_string_lossy().replacen(base_path, "", 1))
+            }
+        })
+    }
+
+    pub fn sort_entries(&mut self) {
+        use DirectoryEntry::*;
+        self.entries.sort_by(|a, b| {
+            match (a, b) {
+                (Directory(a), Directory(b)) => {
+                    a.name.cmp(&b.name)
+                },
+                (File { name: a_name, path: _ }, File { name: b_name, path: _ }) => {
+                    a_name.cmp(&b_name)
+                },
+                _ => {
+                    if a.is_directory() {
+                        Ordering::Less
+                    } else {
+                        Ordering::Greater
+                    }
+                },
             }
         })
     }

@@ -1,6 +1,7 @@
 use clap::{arg, command, value_parser};
 
 use std::path::PathBuf;
+use std::env;
 
 #[derive(Debug, Clone)]
 pub struct ServerConfigs {
@@ -14,7 +15,7 @@ pub struct ServerConfigs {
 impl Default for ServerConfigs {
     fn default() -> Self {
         Self {
-            base_dir: PathBuf::from("./"),
+            base_dir: env::current_dir().unwrap_or(PathBuf::from("./")),
             host: "127.0.0.1".to_string(),
             port: 8080,
             log_level: log::Level::Info,
