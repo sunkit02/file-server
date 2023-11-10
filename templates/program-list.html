@@ -1,7 +1,7 @@
 <div
   hx-get="/manager/api/v1/directory-structure/{{base_dir.path}}"
   hx-target="this"
-  hx-swap="innerHTML"
+  hx-swap="outerHTML"
   hx-trigger="click"
   hx-vals='{"expanded": {{expanded}}}'
   onclick="stopEventPropagation(event)"
