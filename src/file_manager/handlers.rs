@@ -8,7 +8,7 @@ use actix_web::{
 };
 use askama::Template;
 use file_server_core::*;
-use log::debug;
+
 use serde::Deserialize;
 
 use crate::file_manager::templates::{HomePageTemplate, ProgramListTemplate};
@@ -122,8 +122,6 @@ pub async fn directory_structure_template(
             .render()
             .unwrap();
 
-            debug!("{}", template);
-
             return HttpResponse::Ok()
                 .insert_header(ContentType::plaintext())
                 .body(template);
@@ -134,8 +132,6 @@ pub async fn directory_structure_template(
 
 #[get("/manager/api/v1/file-content/{path:.*}")]
 pub async fn file_content(path: Path<PathBuf>) -> impl Responder {
-    debug!("Path: {:?}", path);
-
     let path = path.into_inner();
     let name = path.file_name().unwrap().to_str().unwrap();
     let template = FileContentTemplate {
@@ -144,8 +140,6 @@ pub async fn file_content(path: Path<PathBuf>) -> impl Responder {
     }
     .render()
     .unwrap();
-
-    debug!("{}", template);
 
     HttpResponse::Ok()
         .insert_header(ContentType::plaintext())
