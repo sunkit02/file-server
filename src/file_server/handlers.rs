@@ -6,7 +6,7 @@ use actix_web::{
     HttpResponse, Responder,
 };
 use file_server_core::*;
-use log::{debug, info};
+use log::{info};
 use mime_guess;
 use serde::Deserialize;
 
@@ -62,7 +62,7 @@ async fn serve_static_file(
                 '<' => sanitized_file_content.push_str("&lt;"),
                 '>' => sanitized_file_content.push_str("&gt;"),
                 '&' => sanitized_file_content.push_str("&amp;"),
-                c @ _ => sanitized_file_content.push(c),
+                c => sanitized_file_content.push(c),
             });
 
             response_builder.body(sanitized_file_content)

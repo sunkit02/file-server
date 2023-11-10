@@ -8,8 +8,6 @@ pub fn get_directory_structure(root_directory: &mut Directory) -> std::io::Resul
     let root_entries = fs::read_dir(&root_directory.path)?.flatten();
 
     for root_entry in root_entries {
-        let root_dir_entry: DirectoryEntry;
-
         let name = root_entry
             .file_name()
             .to_str()
@@ -22,15 +20,15 @@ pub fn get_directory_structure(root_directory: &mut Directory) -> std::io::Resul
             _ => false,
         };
 
-        if is_directory {
-            root_dir_entry = DirectoryEntry::Directory(Directory {
+        let root_dir_entry = if is_directory {
+            DirectoryEntry::Directory(Directory {
                 name,
                 entries: Vec::new(),
                 path,
-            });
+            })
         } else {
-            root_dir_entry = DirectoryEntry::File { name, path };
-        }
+            DirectoryEntry::File { name, path }
+        };
 
         root_directory.entries.push(root_dir_entry);
     }
@@ -42,8 +40,6 @@ pub fn get_directory_structure_recursive(root_directory: &mut Directory) -> std:
     let root_entries = fs::read_dir(&root_directory.path)?.flatten();
 
     for root_entry in root_entries {
-        let root_dir_entry: DirectoryEntry;
-
         let name = root_entry
             .file_name()
             .to_str()
@@ -56,7 +52,7 @@ pub fn get_directory_structure_recursive(root_directory: &mut Directory) -> std:
             _ => false,
         };
 
-        if is_directory {
+        let root_dir_entry = if is_directory {
             let mut directory = Directory {
                 name,
                 entries: Vec::new(),
@@ -65,10 +61,10 @@ pub fn get_directory_structure_recursive(root_directory: &mut Directory) -> std:
 
             // Recursively check for entries if is directory
             let _ = get_directory_structure_recursive(&mut directory);
-            root_dir_entry = DirectoryEntry::Directory(directory);
+            DirectoryEntry::Directory(directory)
         } else {
-            root_dir_entry = DirectoryEntry::File { name, path };
-        }
+            DirectoryEntry::File { name, path }
+        };
 
         root_directory.entries.push(root_dir_entry);
     }
