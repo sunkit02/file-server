@@ -6,7 +6,7 @@ use actix_web::{
     HttpResponse, Responder,
 };
 use file_server_core::*;
-use log::{info, debug};
+use log::{debug, info};
 use mime_guess;
 use serde::Deserialize;
 
@@ -14,6 +14,11 @@ use std::fs;
 use std::io::prelude::*;
 
 use crate::configs::ServerConfigs;
+
+#[get("/health-check")]
+async fn health_check() -> impl Responder {
+    HttpResponse::Ok().finish()
+}
 
 #[derive(Debug, Deserialize)]
 struct FileRequest {
@@ -27,8 +32,6 @@ async fn serve_static_file(
     path: Path<String>,
     query: Query<FileRequest>,
 ) -> impl Responder {
-    debug!("{:?}", query);
-
     // TODO: Add request ID for debugging purposes
     let mut file_path = configs.base_dir.clone();
     file_path.push(path.as_str());
@@ -55,15 +58,12 @@ async fn serve_static_file(
             response_builder.insert_header(ContentType::plaintext());
             let file_content = String::from_utf8_lossy(&file_bytes);
             let mut sanitized_file_content = String::with_capacity(file_content.len() * 2);
-            file_content.chars()
-                .for_each(|c| {
-                    match c {
-                        '<'   => sanitized_file_content.push_str("&lt;"),
-                        '>'   => sanitized_file_content.push_str("&gt;"),
-                        '&'   => sanitized_file_content.push_str("&amp;"),
-                        c @ _ => sanitized_file_content.push(c),
-                    }
-                });
+            file_content.chars().for_each(|c| match c {
+                '<' => sanitized_file_content.push_str("&lt;"),
+                '>' => sanitized_file_content.push_str("&gt;"),
+                '&' => sanitized_file_content.push_str("&amp;"),
+                c @ _ => sanitized_file_content.push(c),
+            });
 
             response_builder.body(sanitized_file_content)
         }

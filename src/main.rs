@@ -1,4 +1,3 @@
-
 use configs::ServerConfigs;
 
 mod configs;
