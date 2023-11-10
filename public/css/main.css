@@ -46,10 +46,14 @@ main {
   flex-direction: row;
 }
 
+.entry-list {
+  list-style-type: '📁';
+}
+
 .directory-entry {
   display: flex;
   justify-items: right;
-  width: 80%;
+  width: 100%;
 }
 
 .directory-entry-name {
@@ -65,8 +69,9 @@ main {
   /* background-color: lightgrey; */
 }
 
-.file {
-  /* background-color: beige; */
+.file::before {
+  content: '🗎 ';
+  margin-right: 0.25rem;
 }
 
 .list-spacer {
@@ -95,7 +100,6 @@ main {
   resize: none;
 }
 
-#preview-container textarea:focus {
+#preview-container div:focus {
   outline: none;
-  background-color: beige;
 }
