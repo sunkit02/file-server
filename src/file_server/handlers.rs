@@ -6,7 +6,7 @@ use actix_web::{
     HttpResponse, Responder,
 };
 use file_server_core::*;
-use log::info;
+use log::{info, debug};
 use mime_guess;
 use serde::Deserialize;
 
@@ -15,7 +15,7 @@ use std::io::prelude::*;
 
 use crate::configs::ServerConfigs;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct FileRequest {
     #[serde(rename = "force-display")]
     force_display: Option<bool>,
@@ -27,6 +27,8 @@ async fn serve_static_file(
     path: Path<String>,
     query: Query<FileRequest>,
 ) -> impl Responder {
+    debug!("{:?}", query);
+
     // TODO: Add request ID for debugging purposes
     let mut file_path = configs.base_dir.clone();
     file_path.push(path.as_str());
@@ -34,6 +36,7 @@ async fn serve_static_file(
     let file_bytes = match NamedFile::open(&file_path) {
         Ok(file) => {
             let file = file.file();
+            // FIX: Check if is directory before mapping into byte array
             file.bytes().map(|byte| byte.unwrap()).collect::<Vec<_>>()
         }
         Err(_) => {
@@ -50,6 +53,19 @@ async fn serve_static_file(
     match query.force_display {
         Some(force_display) if force_display => {
             response_builder.insert_header(ContentType::plaintext());
+            let file_content = String::from_utf8_lossy(&file_bytes);
+            let mut sanitized_file_content = String::with_capacity(file_content.len() * 2);
+            file_content.chars()
+                .for_each(|c| {
+                    match c {
+                        '<'   => sanitized_file_content.push_str("&lt;"),
+                        '>'   => sanitized_file_content.push_str("&gt;"),
+                        '&'   => sanitized_file_content.push_str("&amp;"),
+                        c @ _ => sanitized_file_content.push(c),
+                    }
+                });
+
+            response_builder.body(sanitized_file_content)
         }
         _ => {
             // get file mimetype from file name
@@ -58,10 +74,9 @@ async fn serve_static_file(
                 None => "text/plain".to_string(),
             };
             response_builder.insert_header(("Content-Type", mime_type.as_str()));
+            response_builder.body(file_bytes)
         }
     }
-
-    response_builder.body(file_bytes)
 }
 
 #[derive(Debug, Deserialize)]
@@ -113,6 +128,6 @@ pub async fn dir_structure(
                 .insert_header(ContentType::json())
                 .body(serde_json::to_string(&base_dir).unwrap());
         }
-        Err(err) => return HttpResponse::BadRequest().body(err.to_string()),
+        Err(err) => HttpResponse::BadRequest().body(err.to_string()),
     }
 }

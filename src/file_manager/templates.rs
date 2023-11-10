@@ -2,7 +2,7 @@ use askama::Template;
 use file_server_core::{Directory, DirectoryEntry};
 
 #[derive(Debug, Template)]
-#[template(path = "index.html")]
+#[template(path = "index.html", escape = "none")]
 pub struct HomePageTemplate {
     pub css_content: String,
 }
