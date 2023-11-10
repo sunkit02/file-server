@@ -17,7 +17,7 @@ use crate::{
     file_manager::templates::{DirectoryTemplate, FileContentTemplate},
 };
 
-const CSS_FILE: &'static [u8] = include_bytes!("../../public/css/main.css");
+const CSS_FILE: &[u8] = include_bytes!("../../public/css/main.css");
 
 #[get("/")]
 pub async fn home_page() -> impl Responder {
@@ -56,7 +56,7 @@ pub async fn directory_structure_template(
     // Remove prefix '/' for queries not pointing to base_dir
     // TODO: Solve this in a cleaner way (at the type level)
     let mut path = path.into_inner();
-    if path.len() >= 1 && path.starts_with("/") {
+    if !path.is_empty() && path.starts_with('/') {
         // Remove the '/'
         path.remove(0);
     }
@@ -88,7 +88,7 @@ pub async fn directory_structure_template(
 
     // Return early if expanded
     if let Some(expanded) = query.expanded {
-        if expanded == true {
+        if expanded {
             base_dir.sanitize_path(&configs.base_dir.to_string_lossy());
 
             let template = ProgramListTemplate {
@@ -122,11 +122,13 @@ pub async fn directory_structure_template(
             .render()
             .unwrap();
 
+            debug!("{}", template);
+
             return HttpResponse::Ok()
-                .insert_header(ContentType::html())
+                .insert_header(ContentType::plaintext())
                 .body(template);
         }
-        Err(err) => return HttpResponse::BadRequest().body(err.to_string()),
+        Err(err) => HttpResponse::BadRequest().body(err.to_string()),
     }
 }
 
@@ -146,6 +148,6 @@ pub async fn file_content(path: Path<PathBuf>) -> impl Responder {
     debug!("{}", template);
 
     HttpResponse::Ok()
-        .insert_header(ContentType::html())
+        .insert_header(ContentType::plaintext())
         .body(template)
 }

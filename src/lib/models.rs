@@ -56,7 +56,7 @@ impl Directory {
                     name: b_name,
                     path: _,
                 },
-            ) => a_name.cmp(&b_name),
+            ) => a_name.cmp(b_name),
             _ => {
                 if a.is_directory() {
                     Ordering::Less
