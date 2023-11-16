@@ -6,7 +6,7 @@ use actix_web::{
     HttpResponse, Responder,
 };
 use file_server_core::*;
-use log::{info};
+use log::info;
 use mime_guess;
 use serde::Deserialize;
 
@@ -36,11 +36,16 @@ async fn serve_static_file(
     let mut file_path = configs.base_dir.clone();
     file_path.push(path.as_str());
 
-    let file_bytes = match NamedFile::open(&file_path) {
+    let file_bytes = match NamedFile::open_async(&file_path).await {
         Ok(file) => {
-            let file = file.file();
-            // FIX: Check if is directory before mapping into byte array
-            file.bytes().map(|byte| byte.unwrap()).collect::<Vec<_>>()
+            if file.metadata().is_dir() {
+                return HttpResponse::BadRequest().body(format!("{:?} is a directory", &file_path));
+            }
+
+            file.file()
+                .bytes()
+                .map(|byte| byte.unwrap())
+                .collect::<Vec<_>>()
         }
         Err(_) => {
             let message = format!("Failed to get file with path: {}", path);
