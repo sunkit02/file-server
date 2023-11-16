@@ -49,8 +49,6 @@ pub async fn directory_structure_template(
     path: Path<String>,
     query: Query<FileManagerDirectoryStructureQuery>,
 ) -> impl Responder {
-    dbg!(query.expanded);
-
     let mut root_dir_path = configs.base_dir.clone();
 
     // Remove prefix '/' for queries not pointing to base_dir
