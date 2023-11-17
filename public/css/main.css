@@ -100,6 +100,13 @@ main {
   resize: none;
 }
 
+#preview-container img {
+  background-color: beige;
+  max-width: 100%;
+  max-height: 90%;
+  padding: 1rem;
+}
+
 #preview-container div:focus {
   outline: none;
 }

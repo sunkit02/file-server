@@ -67,3 +67,25 @@ impl Directory {
         })
     }
 }
+
+#[derive(Debug, Serialize)]
+pub enum MediaType {
+    TEXT,
+    IMAGE,
+    AUDIO,
+    VIDEO,
+    OTHER,
+}
+
+impl From<&str> for MediaType {
+    fn from(mime_type: &str) -> Self {
+        let (mime_type, _subtype) = mime_type.split_once("/").unwrap();
+        match mime_type {
+            "text"  => MediaType::TEXT,
+            "image" => MediaType::IMAGE,
+            "audio" => MediaType::AUDIO,
+            "video" => MediaType::VIDEO,
+            _       => MediaType::OTHER,
+        }
+    }
+}

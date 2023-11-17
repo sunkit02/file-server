@@ -1,5 +1,5 @@
 use askama::Template;
-use file_server_core::{Directory, DirectoryEntry};
+use file_server_core::{Directory, DirectoryEntry, MediaType};
 
 #[derive(Debug, Template)]
 #[template(path = "index.html", escape = "none")]
@@ -67,4 +67,5 @@ impl<'a> From<&'a DirectoryEntry> for DirectoryEntryTemplate<'a> {
 pub struct FileContentTemplate<'a> {
     pub name: &'a str,
     pub path: &'a str,
+    pub media_type: MediaType,
 }

@@ -1,10 +1,17 @@
 <h3>{{name}}</h3>
-<textarea
-  hx-get="/api/v1/files/{{path}}"
-  hx-target="this"
-  hx-trigger="load"
-  hx-swap="innerHTML"
-  hx-vals='{"force-display": true}'
-  readonly
->
-</textarea>
+{% match media_type %}
+  {% when MediaType::TEXT %}
+    <textarea
+      hx-get="/api/v1/files/{{path}}"
+      hx-target="this"
+      hx-trigger="load"
+      hx-swap="innerHTML"
+      hx-vals='{"force-display": true}'
+      readonly
+    >
+    </textarea>
+  {% when MediaType::IMAGE %}
+    <img src="/api/v1/files/{{path}}" />
+  {% else %}
+    <p>Media type does not support preview</p>
+{% endmatch %}

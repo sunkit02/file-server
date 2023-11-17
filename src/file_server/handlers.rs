@@ -11,7 +11,7 @@ use mime_guess;
 use serde::Deserialize;
 
 use std::fs;
-use std::io::prelude::*;
+use std::io::Read;
 
 use crate::configs::ServerConfigs;
 
@@ -83,6 +83,7 @@ async fn serve_static_file(
         }
     }
 }
+
 
 #[derive(Debug, Deserialize)]
 pub struct DirectoryStructureQuery {
