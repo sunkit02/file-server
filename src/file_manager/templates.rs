@@ -68,4 +68,5 @@ pub struct FileContentTemplate<'a> {
     pub name: &'a str,
     pub path: &'a str,
     pub media_type: MediaType,
+    pub mime_type: Option<&'a str>,
 }

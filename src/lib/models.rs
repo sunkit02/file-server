@@ -1,5 +1,8 @@
-use std::{cmp::Ordering, path::PathBuf};
+use std::{cmp::Ordering, fs::{File, Metadata}, io::Read, path::PathBuf, task::Poll};
 
+use actix_web::web::Bytes;
+use futures_util::Stream;
+use log::debug;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -81,11 +84,63 @@ impl From<&str> for MediaType {
     fn from(mime_type: &str) -> Self {
         let (mime_type, _subtype) = mime_type.split_once("/").unwrap();
         match mime_type {
-            "text"  => MediaType::TEXT,
+            "text" => MediaType::TEXT,
             "image" => MediaType::IMAGE,
             "audio" => MediaType::AUDIO,
             "video" => MediaType::VIDEO,
-            _       => MediaType::OTHER,
+            _ => MediaType::OTHER,
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct FileStream {
+    pub file: File,
+    metadata: Metadata,
+    bytes_read: usize,
+}
+
+impl FileStream {
+    pub fn new(file: File) -> Self {
+        let metadata = file.metadata().unwrap();
+        Self {
+            file,
+            metadata,
+            bytes_read: 0,
+        }
+    }
+}
+
+impl Stream for FileStream {
+    type Item = Result<Bytes, std::io::Error>;
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let hint = (0, Some(self.metadata.len() as usize - self.bytes_read));
+
+        hint
+    }
+
+    fn poll_next(
+        mut self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> Poll<Option<Self::Item>> {
+        let mut buffer = [0;1024 * 500]; // 500KB
+        match self.file.read(&mut buffer) {
+            Ok(n) if n == 0 => {
+                debug!("Read nothing");
+                return Poll::Ready(None)
+            }
+            Ok(n) => self.bytes_read += n,
+            Err(err) => {
+                debug!("{}", err);
+                return Poll::Ready(Some(Err(err)))
+            }
+        };
+
+        let buffer = Bytes::from(Vec::from(buffer));
+
+        debug!("Returning {:?} bytes, bytes read: {}", buffer.len(), self.bytes_read);
+
+        Poll::Ready(Some(Ok(buffer)))
     }
 }

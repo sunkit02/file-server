@@ -10,7 +10,7 @@ use log::info;
 use mime_guess;
 use serde::Deserialize;
 
-use std::fs;
+use std::fs::{self, File};
 use std::io::Read;
 
 use crate::configs::ServerConfigs;
@@ -84,6 +84,25 @@ async fn serve_static_file(
     }
 }
 
+#[get("/api/v1/stream/{path:.*}")]
+async fn serve_file_stream(configs: Data<ServerConfigs>, path: Path<String>) -> impl Responder {
+    let mut file_path = configs.base_dir.clone();
+    file_path.push(path.as_str());
+
+    let file = match File::open(&file_path) {
+        Ok(file) if !file.metadata().unwrap().is_file() => {
+            return HttpResponse::BadRequest()
+                .body(format!("{:?} is a directory", &file_path));
+        },
+        Err(_) => {
+            return HttpResponse::InternalServerError()
+                .body(format!("Failed to open file {}", &path))
+        }
+        Ok(file) => file,
+    };
+
+    return HttpResponse::Ok().streaming(FileStream::new(file));
+}
 
 #[derive(Debug, Deserialize)]
 pub struct DirectoryStructureQuery {

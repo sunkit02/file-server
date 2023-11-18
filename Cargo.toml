@@ -19,6 +19,7 @@ actix-web = "4.4.0"
 askama = "0.12.1"
 clap = { version = "4.4.7", features = ["cargo"] }
 env_logger = "0.10.0"
+futures-util = "0.3.29"
 log = "0.4.20"
 mime_guess = "2.0.4"
 serde = { version = "1.0.190", features = ["derive"] }

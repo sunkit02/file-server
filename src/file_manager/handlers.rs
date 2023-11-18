@@ -132,13 +132,16 @@ pub async fn directory_structure_template(
 pub async fn file_content(path: Path<PathBuf>) -> impl Responder {
     let path = path.into_inner();
     let name = path.file_name().unwrap().to_str().unwrap();
-    let mime_type = mime_guess::from_path(name).first_raw().unwrap_or("text/plain");
+    let mime_type = mime_guess::from_path(name)
+        .first_raw()
+        .unwrap_or("text/plain");
     let media_type = MediaType::from(mime_type);
 
     let template = FileContentTemplate {
         name,
         path: path.to_str().unwrap_or(name),
         media_type,
+        mime_type: Some(mime_type),
     }
     .render()
     .unwrap();
