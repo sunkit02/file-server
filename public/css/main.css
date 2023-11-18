@@ -113,6 +113,12 @@ main {
   padding: 1rem;
 }
 
+#preview-container audio {
+  background-color: beige;
+  max-width: 100%;
+  padding: 1rem;
+}
+
 #preview-container div:focus {
   outline: none;
 }

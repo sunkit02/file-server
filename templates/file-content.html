@@ -12,6 +12,10 @@
     </textarea>
   {% when MediaType::IMAGE %}
     <img src="/api/v1/files/{{path}}" />
+  {% when MediaType::AUDIO %}
+    <audio controls>
+      <source src="/api/v1/stream/{{path}}" type="{{mime_type.unwrap()}}"> 
+    </audio>
   {% when MediaType::VIDEO %}
     <video controls>
       <source src="/api/v1/stream/{{path}}" type="{{mime_type.unwrap()}}"> 
